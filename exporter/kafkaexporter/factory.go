@@ -21,6 +21,7 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/configmodels"
 	"go.opentelemetry.io/collector/exporter/exporterhelper"
+	"go.opentelemetry.io/collector/exporter/kafkaexporter/trace"
 )
 
 const (
@@ -40,10 +41,10 @@ const (
 type FactoryOption func(factory *kafkaExporterFactory)
 
 // WithAddMarshallers adds marshallers.
-func WithAddMarshallers(encodingMarshaller map[string]Marshaller) FactoryOption {
+func WithAddMarshallers(encodingMarshaller map[string]trace.Marshaller) FactoryOption {
 	return func(factory *kafkaExporterFactory) {
 		for encoding, marshaller := range encodingMarshaller {
-			factory.marshallers[encoding] = marshaller
+			factory.traceMarshallers[encoding] = marshaller
 		}
 	}
 }
@@ -51,7 +52,7 @@ func WithAddMarshallers(encodingMarshaller map[string]Marshaller) FactoryOption 
 // NewFactory creates Kafka exporter factory.
 func NewFactory(options ...FactoryOption) component.ExporterFactory {
 	f := &kafkaExporterFactory{
-		marshallers: defaultMarshallers(),
+		traceMarshallers: trace.DefaultMarshallers(),
 	}
 	for _, o := range options {
 		o(f)
@@ -85,7 +86,7 @@ func createDefaultConfig() configmodels.Exporter {
 }
 
 type kafkaExporterFactory struct {
-	marshallers map[string]Marshaller
+	traceMarshallers map[string]trace.Marshaller
 }
 
 func (f *kafkaExporterFactory) createTraceExporter(
@@ -94,7 +95,7 @@ func (f *kafkaExporterFactory) createTraceExporter(
 	cfg configmodels.Exporter,
 ) (component.TraceExporter, error) {
 	oCfg := cfg.(*Config)
-	exp, err := newExporter(*oCfg, params, f.marshallers)
+	exp, err := newExporter(*oCfg, params, f.traceMarshallers)
 	if err != nil {
 		return nil, err
 	}

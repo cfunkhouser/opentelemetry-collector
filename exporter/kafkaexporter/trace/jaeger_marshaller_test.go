@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package kafkaexporter
+package trace
 
 import (
 	"bytes"
@@ -23,6 +23,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"go.opentelemetry.io/collector/consumer/pdata"
+	"go.opentelemetry.io/collector/exporter/kafkaexporter/internal"
 	jaegertranslator "go.opentelemetry.io/collector/translator/trace/jaeger"
 )
 
@@ -51,14 +52,14 @@ func TestJaegerMarshaller(t *testing.T) {
 	tests := []struct {
 		unmarshaller Marshaller
 		encoding     string
-		messages     []Message
+		messages     []internal.Message
 	}{
 		{
 			unmarshaller: jaegerMarshaller{
 				marshaller: jaegerProtoSpanMarshaller{},
 			},
 			encoding: "jaeger_proto",
-			messages: []Message{{Value: jaegerProtoBytes}},
+			messages: []internal.Message{{Value: jaegerProtoBytes}},
 		},
 		{
 			unmarshaller: jaegerMarshaller{
@@ -67,7 +68,7 @@ func TestJaegerMarshaller(t *testing.T) {
 				},
 			},
 			encoding: "jaeger_json",
-			messages: []Message{{Value: jsonByteBuffer.Bytes()}},
+			messages: []internal.Message{{Value: jsonByteBuffer.Bytes()}},
 		},
 	}
 	for _, test := range tests {

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package kafkaexporter
+package trace
 
 import (
 	"testing"
@@ -27,7 +27,7 @@ func TestDefaultMarshallers(t *testing.T) {
 		"jaeger_proto",
 		"jaeger_json",
 	}
-	marshallers := defaultMarshallers()
+	marshallers := DefaultMarshallers()
 	assert.Equal(t, len(expectedEncodings), len(marshallers))
 	for _, e := range expectedEncodings {
 		t.Run(e, func(t *testing.T) {

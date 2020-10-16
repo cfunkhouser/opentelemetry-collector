@@ -26,6 +26,8 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer/consumererror"
 	"go.opentelemetry.io/collector/consumer/pdata"
+	"go.opentelemetry.io/collector/exporter/kafkaexporter/internal"
+	"go.opentelemetry.io/collector/exporter/kafkaexporter/trace"
 )
 
 var errUnrecognizedEncoding = fmt.Errorf("unrecognized encoding")
@@ -34,12 +36,12 @@ var errUnrecognizedEncoding = fmt.Errorf("unrecognized encoding")
 type kafkaProducer struct {
 	producer   sarama.SyncProducer
 	topic      string
-	marshaller Marshaller
+	marshaller trace.Marshaller
 	logger     *zap.Logger
 }
 
 // newExporter creates Kafka exporter.
-func newExporter(config Config, params component.ExporterCreateParams, marshallers map[string]Marshaller) (*kafkaProducer, error) {
+func newExporter(config Config, params component.ExporterCreateParams, marshallers map[string]trace.Marshaller) (*kafkaProducer, error) {
 	marshaller := marshallers[config.Encoding]
 	if marshaller == nil {
 		return nil, errUnrecognizedEncoding
@@ -94,7 +96,7 @@ func (e *kafkaProducer) Close(context.Context) error {
 	return e.producer.Close()
 }
 
-func producerMessages(messages []Message, topic string) []*sarama.ProducerMessage {
+func producerMessages(messages []internal.Message, topic string) []*sarama.ProducerMessage {
 	producerMessages := make([]*sarama.ProducerMessage, len(messages))
 	for i := range messages {
 		producerMessages[i] = &sarama.ProducerMessage{

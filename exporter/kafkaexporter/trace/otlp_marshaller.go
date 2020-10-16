@@ -12,23 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package kafkaexporter
+package trace
 
 import (
 	"go.opentelemetry.io/collector/consumer/pdata"
+	"go.opentelemetry.io/collector/exporter/kafkaexporter/internal"
 	otlptrace "go.opentelemetry.io/collector/internal/data/opentelemetry-proto-gen/collector/trace/v1"
 )
 
-type otlpProtoMarshaller struct {
+type OTLPProtoMarshaller struct {
 }
 
-var _ Marshaller = (*otlpProtoMarshaller)(nil)
+var _ Marshaller = (*OTLPProtoMarshaller)(nil)
 
-func (m *otlpProtoMarshaller) Encoding() string {
-	return defaultEncoding
+func (*OTLPProtoMarshaller) Encoding() string {
+	return "otlp_proto"
 }
 
-func (m *otlpProtoMarshaller) Marshal(traces pdata.Traces) ([]Message, error) {
+func (*OTLPProtoMarshaller) Marshal(traces pdata.Traces) ([]internal.Message, error) {
 	request := otlptrace.ExportTraceServiceRequest{
 		ResourceSpans: pdata.TracesToOtlp(traces),
 	}
@@ -36,5 +37,5 @@ func (m *otlpProtoMarshaller) Marshal(traces pdata.Traces) ([]Message, error) {
 	if err != nil {
 		return nil, err
 	}
-	return []Message{{Value: bts}}, nil
+	return []internal.Message{{Value: bts}}, nil
 }

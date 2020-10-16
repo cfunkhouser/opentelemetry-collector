@@ -12,29 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package kafkaexporter
+// Package trace implements trace support for the OpenTelemetry Kafka Exporter.
+package trace
 
 import (
 	"go.opentelemetry.io/collector/consumer/pdata"
+	"go.opentelemetry.io/collector/exporter/kafkaexporter/internal"
 )
 
 // Marshaller marshals traces into Message array.
 type Marshaller interface {
 	// Marshal serializes spans into Messages
-	Marshal(traces pdata.Traces) ([]Message, error)
+	Marshal(traces pdata.Traces) ([]internal.Message, error)
 
 	// Encoding returns encoding name
 	Encoding() string
 }
 
-// Message encapsulates Kafka's message payload.
-type Message struct {
-	Value []byte
-}
-
-// defaultMarshallers returns map of supported encodings with Marshaller.
-func defaultMarshallers() map[string]Marshaller {
-	otlp := &otlpProtoMarshaller{}
+// DefaultMarshallers returns map of supported encodings with Marshaller.
+func DefaultMarshallers() map[string]Marshaller {
+	otlp := &OTLPProtoMarshaller{}
 	jaegerProto := jaegerMarshaller{marshaller: jaegerProtoSpanMarshaller{}}
 	jaegerJSON := jaegerMarshaller{marshaller: newJaegerJSONMarshaller()}
 	return map[string]Marshaller{

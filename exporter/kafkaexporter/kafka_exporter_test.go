@@ -28,19 +28,21 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/configtls"
 	"go.opentelemetry.io/collector/consumer/pdata"
+	"go.opentelemetry.io/collector/exporter/kafkaexporter/internal"
+	"go.opentelemetry.io/collector/exporter/kafkaexporter/trace"
 	"go.opentelemetry.io/collector/internal/data/testdata"
 )
 
 func TestNewExporter_err_version(t *testing.T) {
 	c := Config{ProtocolVersion: "0.0.0", Encoding: defaultEncoding}
-	exp, err := newExporter(c, component.ExporterCreateParams{}, defaultMarshallers())
+	exp, err := newExporter(c, component.ExporterCreateParams{}, trace.DefaultMarshallers())
 	assert.Error(t, err)
 	assert.Nil(t, exp)
 }
 
 func TestNewExporter_err_encoding(t *testing.T) {
 	c := Config{Encoding: "foo"}
-	exp, err := newExporter(c, component.ExporterCreateParams{}, defaultMarshallers())
+	exp, err := newExporter(c, component.ExporterCreateParams{}, trace.DefaultMarshallers())
 	assert.EqualError(t, err, errUnrecognizedEncoding.Error())
 	assert.Nil(t, exp)
 }
@@ -60,7 +62,7 @@ func TestNewExporter_err_auth_type(t *testing.T) {
 			Full: false,
 		},
 	}
-	exp, err := newExporter(c, component.ExporterCreateParams{}, defaultMarshallers())
+	exp, err := newExporter(c, component.ExporterCreateParams{}, trace.DefaultMarshallers())
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "failed to load TLS config")
 	assert.Nil(t, exp)
@@ -73,7 +75,7 @@ func TestTraceDataPusher(t *testing.T) {
 
 	p := kafkaProducer{
 		producer:   producer,
-		marshaller: &otlpProtoMarshaller{},
+		marshaller: &trace.OTLPProtoMarshaller{},
 	}
 	t.Cleanup(func() {
 		require.NoError(t, p.Close(context.Background()))
@@ -91,7 +93,7 @@ func TestTraceDataPusher_err(t *testing.T) {
 
 	p := kafkaProducer{
 		producer:   producer,
-		marshaller: &otlpProtoMarshaller{},
+		marshaller: &trace.OTLPProtoMarshaller{},
 		logger:     zap.NewNop(),
 	}
 	t.Cleanup(func() {
@@ -120,9 +122,9 @@ type errorMarshaller struct {
 	err error
 }
 
-var _ Marshaller = (*errorMarshaller)(nil)
+var _ trace.Marshaller = (*errorMarshaller)(nil)
 
-func (e errorMarshaller) Marshal(traces pdata.Traces) ([]Message, error) {
+func (e errorMarshaller) Marshal(traces pdata.Traces) ([]internal.Message, error) {
 	return nil, e.err
 }
 

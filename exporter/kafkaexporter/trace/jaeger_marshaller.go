@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package kafkaexporter
+package trace
 
 import (
 	"bytes"
@@ -22,6 +22,7 @@ import (
 
 	"go.opentelemetry.io/collector/component/componenterror"
 	"go.opentelemetry.io/collector/consumer/pdata"
+	"go.opentelemetry.io/collector/exporter/kafkaexporter/internal"
 	jaegertranslator "go.opentelemetry.io/collector/translator/trace/jaeger"
 )
 
@@ -31,12 +32,12 @@ type jaegerMarshaller struct {
 
 var _ Marshaller = (*jaegerMarshaller)(nil)
 
-func (j jaegerMarshaller) Marshal(traces pdata.Traces) ([]Message, error) {
+func (j jaegerMarshaller) Marshal(traces pdata.Traces) ([]internal.Message, error) {
 	batches, err := jaegertranslator.InternalTracesToJaegerProto(traces)
 	if err != nil {
 		return nil, err
 	}
-	var messages []Message
+	var messages []internal.Message
 	var errs []error
 	for _, batch := range batches {
 		for _, span := range batch.Spans {
@@ -47,7 +48,7 @@ func (j jaegerMarshaller) Marshal(traces pdata.Traces) ([]Message, error) {
 				errs = append(errs, err)
 				continue
 			}
-			messages = append(messages, Message{Value: bts})
+			messages = append(messages, internal.Message{Value: bts})
 		}
 	}
 	return messages, componenterror.CombineErrors(errs)

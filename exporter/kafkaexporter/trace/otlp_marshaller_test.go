@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package kafkaexporter
+package trace
 
 import (
 	"testing"
@@ -21,6 +21,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"go.opentelemetry.io/collector/consumer/pdata"
+	"go.opentelemetry.io/collector/exporter/kafkaexporter/internal"
 	otlptrace "go.opentelemetry.io/collector/internal/data/opentelemetry-proto-gen/collector/trace/v1"
 )
 
@@ -36,9 +37,9 @@ func TestOTLPMarshaller(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, expected)
 
-	m := otlpProtoMarshaller{}
+	m := OTLPProtoMarshaller{}
 	assert.Equal(t, "otlp_proto", m.Encoding())
 	messages, err := m.Marshal(td)
 	require.NoError(t, err)
-	assert.Equal(t, []Message{{Value: expected}}, messages)
+	assert.Equal(t, []internal.Message{{Value: expected}}, messages)
 }
