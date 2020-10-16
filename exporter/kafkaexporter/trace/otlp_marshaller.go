@@ -16,7 +16,7 @@ package trace
 
 import (
 	"go.opentelemetry.io/collector/consumer/pdata"
-	"go.opentelemetry.io/collector/exporter/kafkaexporter/internal"
+	"go.opentelemetry.io/collector/exporter/kafkaexporter/wire"
 	otlptrace "go.opentelemetry.io/collector/internal/data/opentelemetry-proto-gen/collector/trace/v1"
 )
 
@@ -29,7 +29,7 @@ func (*OTLPProtoMarshaller) Encoding() string {
 	return "otlp_proto"
 }
 
-func (*OTLPProtoMarshaller) Marshal(traces pdata.Traces) ([]internal.Message, error) {
+func (*OTLPProtoMarshaller) Marshal(traces pdata.Traces) ([]wire.Message, error) {
 	request := otlptrace.ExportTraceServiceRequest{
 		ResourceSpans: pdata.TracesToOtlp(traces),
 	}
@@ -37,5 +37,5 @@ func (*OTLPProtoMarshaller) Marshal(traces pdata.Traces) ([]internal.Message, er
 	if err != nil {
 		return nil, err
 	}
-	return []internal.Message{{Value: bts}}, nil
+	return []wire.Message{{Value: bts}}, nil
 }

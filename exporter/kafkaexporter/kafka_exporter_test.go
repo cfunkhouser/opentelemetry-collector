@@ -28,8 +28,8 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/configtls"
 	"go.opentelemetry.io/collector/consumer/pdata"
-	"go.opentelemetry.io/collector/exporter/kafkaexporter/internal"
 	"go.opentelemetry.io/collector/exporter/kafkaexporter/trace"
+	"go.opentelemetry.io/collector/exporter/kafkaexporter/wire"
 	"go.opentelemetry.io/collector/internal/data/testdata"
 )
 
@@ -124,7 +124,7 @@ type errorMarshaller struct {
 
 var _ trace.Marshaller = (*errorMarshaller)(nil)
 
-func (e errorMarshaller) Marshal(traces pdata.Traces) ([]internal.Message, error) {
+func (e errorMarshaller) Marshal(traces pdata.Traces) ([]wire.Message, error) {
 	return nil, e.err
 }
 

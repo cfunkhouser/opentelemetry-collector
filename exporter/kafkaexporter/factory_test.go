@@ -24,8 +24,8 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/configcheck"
 	"go.opentelemetry.io/collector/consumer/pdata"
-	"go.opentelemetry.io/collector/exporter/kafkaexporter/internal"
 	"go.opentelemetry.io/collector/exporter/kafkaexporter/trace"
+	"go.opentelemetry.io/collector/exporter/kafkaexporter/wire"
 )
 
 func TestCreateDefaultConfig(t *testing.T) {
@@ -85,7 +85,7 @@ type customMarshaller struct {
 
 var _ trace.Marshaller = (*customMarshaller)(nil)
 
-func (c customMarshaller) Marshal(traces pdata.Traces) ([]internal.Message, error) {
+func (c customMarshaller) Marshal(traces pdata.Traces) ([]wire.Message, error) {
 	panic("implement me")
 }
 

@@ -26,8 +26,8 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer/consumererror"
 	"go.opentelemetry.io/collector/consumer/pdata"
-	"go.opentelemetry.io/collector/exporter/kafkaexporter/internal"
 	"go.opentelemetry.io/collector/exporter/kafkaexporter/trace"
+	"go.opentelemetry.io/collector/exporter/kafkaexporter/wire"
 )
 
 var errUnrecognizedEncoding = fmt.Errorf("unrecognized encoding")
@@ -96,7 +96,7 @@ func (e *kafkaProducer) Close(context.Context) error {
 	return e.producer.Close()
 }
 
-func producerMessages(messages []internal.Message, topic string) []*sarama.ProducerMessage {
+func producerMessages(messages []wire.Message, topic string) []*sarama.ProducerMessage {
 	producerMessages := make([]*sarama.ProducerMessage, len(messages))
 	for i := range messages {
 		producerMessages[i] = &sarama.ProducerMessage{

@@ -23,7 +23,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"go.opentelemetry.io/collector/consumer/pdata"
-	"go.opentelemetry.io/collector/exporter/kafkaexporter/internal"
+	"go.opentelemetry.io/collector/exporter/kafkaexporter/wire"
 	jaegertranslator "go.opentelemetry.io/collector/translator/trace/jaeger"
 )
 
@@ -52,14 +52,14 @@ func TestJaegerMarshaller(t *testing.T) {
 	tests := []struct {
 		unmarshaller Marshaller
 		encoding     string
-		messages     []internal.Message
+		messages     []wire.Message
 	}{
 		{
 			unmarshaller: jaegerMarshaller{
 				marshaller: jaegerProtoSpanMarshaller{},
 			},
 			encoding: "jaeger_proto",
-			messages: []internal.Message{{Value: jaegerProtoBytes}},
+			messages: []wire.Message{{Value: jaegerProtoBytes}},
 		},
 		{
 			unmarshaller: jaegerMarshaller{
@@ -68,7 +68,7 @@ func TestJaegerMarshaller(t *testing.T) {
 				},
 			},
 			encoding: "jaeger_json",
-			messages: []internal.Message{{Value: jsonByteBuffer.Bytes()}},
+			messages: []wire.Message{{Value: jsonByteBuffer.Bytes()}},
 		},
 	}
 	for _, test := range tests {

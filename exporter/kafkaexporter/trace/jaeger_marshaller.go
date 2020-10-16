@@ -22,7 +22,7 @@ import (
 
 	"go.opentelemetry.io/collector/component/componenterror"
 	"go.opentelemetry.io/collector/consumer/pdata"
-	"go.opentelemetry.io/collector/exporter/kafkaexporter/internal"
+	"go.opentelemetry.io/collector/exporter/kafkaexporter/wire"
 	jaegertranslator "go.opentelemetry.io/collector/translator/trace/jaeger"
 )
 
@@ -32,12 +32,12 @@ type jaegerMarshaller struct {
 
 var _ Marshaller = (*jaegerMarshaller)(nil)
 
-func (j jaegerMarshaller) Marshal(traces pdata.Traces) ([]internal.Message, error) {
+func (j jaegerMarshaller) Marshal(traces pdata.Traces) ([]wire.Message, error) {
 	batches, err := jaegertranslator.InternalTracesToJaegerProto(traces)
 	if err != nil {
 		return nil, err
 	}
-	var messages []internal.Message
+	var messages []wire.Message
 	var errs []error
 	for _, batch := range batches {
 		for _, span := range batch.Spans {
@@ -48,7 +48,7 @@ func (j jaegerMarshaller) Marshal(traces pdata.Traces) ([]internal.Message, erro
 				errs = append(errs, err)
 				continue
 			}
-			messages = append(messages, internal.Message{Value: bts})
+			messages = append(messages, wire.Message{Value: bts})
 		}
 	}
 	return messages, componenterror.CombineErrors(errs)

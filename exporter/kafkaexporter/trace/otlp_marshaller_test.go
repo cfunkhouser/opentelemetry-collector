@@ -21,7 +21,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"go.opentelemetry.io/collector/consumer/pdata"
-	"go.opentelemetry.io/collector/exporter/kafkaexporter/internal"
+	"go.opentelemetry.io/collector/exporter/kafkaexporter/wire"
 	otlptrace "go.opentelemetry.io/collector/internal/data/opentelemetry-proto-gen/collector/trace/v1"
 )
 
@@ -41,5 +41,5 @@ func TestOTLPMarshaller(t *testing.T) {
 	assert.Equal(t, "otlp_proto", m.Encoding())
 	messages, err := m.Marshal(td)
 	require.NoError(t, err)
-	assert.Equal(t, []internal.Message{{Value: expected}}, messages)
+	assert.Equal(t, []wire.Message{{Value: expected}}, messages)
 }

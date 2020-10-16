@@ -17,13 +17,13 @@ package trace
 
 import (
 	"go.opentelemetry.io/collector/consumer/pdata"
-	"go.opentelemetry.io/collector/exporter/kafkaexporter/internal"
+	"go.opentelemetry.io/collector/exporter/kafkaexporter/wire"
 )
 
 // Marshaller marshals traces into Message array.
 type Marshaller interface {
 	// Marshal serializes spans into Messages
-	Marshal(traces pdata.Traces) ([]internal.Message, error)
+	Marshal(traces pdata.Traces) ([]wire.Message, error)
 
 	// Encoding returns encoding name
 	Encoding() string
