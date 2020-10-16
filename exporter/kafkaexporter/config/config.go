@@ -12,13 +12,39 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package kafkaexporter
+// Package config handles configuration for the kafkaexporter.
+package config
 
 import (
 	"time"
 
 	"go.opentelemetry.io/collector/config/configmodels"
 	"go.opentelemetry.io/collector/exporter/exporterhelper"
+)
+
+const (
+	// ExporterTypeName of this exporter.
+	ExporterTypeName = "kafka"
+
+	// DefaultTopic name for exporting to Kafka.
+	DefaultTopic = "otlp"
+
+	// DefaultEncoding used to export to Kafka.
+	DefaultEncoding = "otlp_proto"
+
+	// DefaultBroker for Kafka exports.
+	DefaultBroker = "localhost:9092"
+
+	// The following defaults are copied from sarama.NewConfig()
+
+	// DefaultMetadataRetryMax number of retries submitting to the broker.
+	DefaultMetadataRetryMax = 3
+
+	// DefaultMetadataRetryBackoff time between retries submitting to the broker.
+	DefaultMetadataRetryBackoff = time.Millisecond * 250
+
+	// DefaultMetadataFull is to send the full metadata.
+	DefaultMetadataFull = true
 )
 
 // Config defines configuration for Kafka exporter.
@@ -32,7 +58,7 @@ type Config struct {
 	Brokers []string `mapstructure:"brokers"`
 	// Kafka protocol version
 	ProtocolVersion string `mapstructure:"protocol_version"`
-	// The name of the kafka topic to export to (default "otlp_spans")
+	// The name of the kafka topic to export to (default "otlp")
 	Topic string `mapstructure:"topic"`
 	// Encoding of the messages (default "otlp_proto")
 	Encoding string `mapstructure:"encoding"`
@@ -67,4 +93,27 @@ type MetadataRetry struct {
 	// How long to wait for leader election to occur before retrying
 	// (default 250ms). Similar to the JVM's `retry.backoff.ms`.
 	Backoff time.Duration `mapstructure:"backoff"`
+}
+
+// Default exporter configuration.
+func Default() configmodels.Exporter {
+	return &Config{
+		ExporterSettings: configmodels.ExporterSettings{
+			TypeVal: ExporterTypeName,
+			NameVal: ExporterTypeName,
+		},
+		TimeoutSettings: exporterhelper.CreateDefaultTimeoutSettings(),
+		RetrySettings:   exporterhelper.CreateDefaultRetrySettings(),
+		QueueSettings:   exporterhelper.CreateDefaultQueueSettings(),
+		Brokers:         []string{DefaultBroker},
+		Topic:           DefaultTopic,
+		Encoding:        DefaultEncoding,
+		Metadata: Metadata{
+			Full: DefaultMetadataFull,
+			Retry: MetadataRetry{
+				Max:     DefaultMetadataRetryMax,
+				Backoff: DefaultMetadataRetryBackoff,
+			},
+		},
+	}
 }

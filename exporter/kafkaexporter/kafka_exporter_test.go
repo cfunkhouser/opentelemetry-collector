@@ -28,37 +28,38 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/configtls"
 	"go.opentelemetry.io/collector/consumer/pdata"
+	"go.opentelemetry.io/collector/exporter/kafkaexporter/config"
 	"go.opentelemetry.io/collector/exporter/kafkaexporter/trace"
 	"go.opentelemetry.io/collector/exporter/kafkaexporter/wire"
 	"go.opentelemetry.io/collector/internal/data/testdata"
 )
 
 func TestNewExporter_err_version(t *testing.T) {
-	c := Config{ProtocolVersion: "0.0.0", Encoding: defaultEncoding}
+	c := config.Config{ProtocolVersion: "0.0.0", Encoding: config.DefaultEncoding}
 	exp, err := newExporter(c, component.ExporterCreateParams{}, trace.DefaultMarshallers())
 	assert.Error(t, err)
 	assert.Nil(t, exp)
 }
 
 func TestNewExporter_err_encoding(t *testing.T) {
-	c := Config{Encoding: "foo"}
+	c := config.Config{Encoding: "foo"}
 	exp, err := newExporter(c, component.ExporterCreateParams{}, trace.DefaultMarshallers())
 	assert.EqualError(t, err, errUnrecognizedEncoding.Error())
 	assert.Nil(t, exp)
 }
 
 func TestNewExporter_err_auth_type(t *testing.T) {
-	c := Config{
+	c := config.Config{
 		ProtocolVersion: "2.0.0",
-		Authentication: Authentication{
+		Authentication: config.Authentication{
 			TLS: &configtls.TLSClientSetting{
 				TLSSetting: configtls.TLSSetting{
 					CAFile: "/doesnotexist",
 				},
 			},
 		},
-		Encoding: defaultEncoding,
-		Metadata: Metadata{
+		Encoding: config.DefaultEncoding,
+		Metadata: config.Metadata{
 			Full: false,
 		},
 	}

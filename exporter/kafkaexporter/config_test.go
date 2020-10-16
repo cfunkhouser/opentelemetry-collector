@@ -26,6 +26,7 @@ import (
 	"go.opentelemetry.io/collector/config/configmodels"
 	"go.opentelemetry.io/collector/config/configtest"
 	"go.opentelemetry.io/collector/exporter/exporterhelper"
+	"go.opentelemetry.io/collector/exporter/kafkaexporter/config"
 )
 
 func TestLoadConfig(t *testing.T) {
@@ -33,16 +34,16 @@ func TestLoadConfig(t *testing.T) {
 	assert.NoError(t, err)
 
 	factory := NewFactory()
-	factories.Exporters[typeStr] = factory
+	factories.Exporters[config.ExporterTypeName] = factory
 	cfg, err := configtest.LoadConfigFile(t, path.Join(".", "testdata", "config.yaml"), factories)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(cfg.Receivers))
 
-	c := cfg.Exporters[typeStr].(*Config)
-	assert.Equal(t, &Config{
+	c := cfg.Exporters[config.ExporterTypeName].(*config.Config)
+	assert.Equal(t, &config.Config{
 		ExporterSettings: configmodels.ExporterSettings{
-			NameVal: typeStr,
-			TypeVal: typeStr,
+			NameVal: config.ExporterTypeName,
+			TypeVal: config.ExporterTypeName,
 		},
 		TimeoutSettings: exporterhelper.TimeoutSettings{
 			Timeout: 10 * time.Second,
@@ -61,17 +62,17 @@ func TestLoadConfig(t *testing.T) {
 		Topic:    "spans",
 		Encoding: "otlp_proto",
 		Brokers:  []string{"foo:123", "bar:456"},
-		Authentication: Authentication{
-			PlainText: &PlainTextConfig{
+		Authentication: config.Authentication{
+			PlainText: &config.PlainTextConfig{
 				Username: "jdoe",
 				Password: "pass",
 			},
 		},
-		Metadata: Metadata{
+		Metadata: config.Metadata{
 			Full: false,
-			Retry: MetadataRetry{
+			Retry: config.MetadataRetry{
 				Max:     15,
-				Backoff: defaultMetadataRetryBackoff,
+				Backoff: config.DefaultMetadataRetryBackoff,
 			},
 		},
 	}, c)

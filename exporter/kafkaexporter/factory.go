@@ -16,32 +16,19 @@ package kafkaexporter
 
 import (
 	"context"
-	"time"
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/configmodels"
 	"go.opentelemetry.io/collector/exporter/exporterhelper"
+	"go.opentelemetry.io/collector/exporter/kafkaexporter/config"
 	"go.opentelemetry.io/collector/exporter/kafkaexporter/trace"
-)
-
-const (
-	typeStr         = "kafka"
-	defaultTopic    = "otlp_spans"
-	defaultEncoding = "otlp_proto"
-	defaultBroker   = "localhost:9092"
-	// default from sarama.NewConfig()
-	defaultMetadataRetryMax = 3
-	// default from sarama.NewConfig()
-	defaultMetadataRetryBackoff = time.Millisecond * 250
-	// default from sarama.NewConfig()
-	defaultMetadataFull = true
 )
 
 // FactoryOption applies changes to kafkaExporterFactory.
 type FactoryOption func(factory *kafkaExporterFactory)
 
-// WithAddMarshallers adds marshallers.
-func WithAddMarshallers(encodingMarshaller map[string]trace.Marshaller) FactoryOption {
+// WithTraceMarshaller adds trace Marshallers to the exporter.
+func WithTraceMarshaller(encodingMarshaller map[string]trace.Marshaller) FactoryOption {
 	return func(factory *kafkaExporterFactory) {
 		for encoding, marshaller := range encodingMarshaller {
 			factory.traceMarshallers[encoding] = marshaller
@@ -58,31 +45,9 @@ func NewFactory(options ...FactoryOption) component.ExporterFactory {
 		o(f)
 	}
 	return exporterhelper.NewFactory(
-		typeStr,
-		createDefaultConfig,
+		config.ExporterTypeName,
+		config.Default,
 		exporterhelper.WithTraces(f.createTraceExporter))
-}
-
-func createDefaultConfig() configmodels.Exporter {
-	return &Config{
-		ExporterSettings: configmodels.ExporterSettings{
-			TypeVal: typeStr,
-			NameVal: typeStr,
-		},
-		TimeoutSettings: exporterhelper.CreateDefaultTimeoutSettings(),
-		RetrySettings:   exporterhelper.CreateDefaultRetrySettings(),
-		QueueSettings:   exporterhelper.CreateDefaultQueueSettings(),
-		Brokers:         []string{defaultBroker},
-		Topic:           defaultTopic,
-		Encoding:        defaultEncoding,
-		Metadata: Metadata{
-			Full: defaultMetadataFull,
-			Retry: MetadataRetry{
-				Max:     defaultMetadataRetryMax,
-				Backoff: defaultMetadataRetryBackoff,
-			},
-		},
-	}
 }
 
 type kafkaExporterFactory struct {
@@ -94,7 +59,7 @@ func (f *kafkaExporterFactory) createTraceExporter(
 	params component.ExporterCreateParams,
 	cfg configmodels.Exporter,
 ) (component.TraceExporter, error) {
-	oCfg := cfg.(*Config)
+	oCfg := cfg.(*config.Config)
 	exp, err := newExporter(*oCfg, params, f.traceMarshallers)
 	if err != nil {
 		return nil, err

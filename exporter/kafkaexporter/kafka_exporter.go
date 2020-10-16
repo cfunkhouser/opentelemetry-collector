@@ -26,6 +26,7 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer/consumererror"
 	"go.opentelemetry.io/collector/consumer/pdata"
+	"go.opentelemetry.io/collector/exporter/kafkaexporter/config"
 	"go.opentelemetry.io/collector/exporter/kafkaexporter/trace"
 	"go.opentelemetry.io/collector/exporter/kafkaexporter/wire"
 )
@@ -41,33 +42,17 @@ type kafkaProducer struct {
 }
 
 // newExporter creates Kafka exporter.
-func newExporter(config Config, params component.ExporterCreateParams, marshallers map[string]trace.Marshaller) (*kafkaProducer, error) {
+func newExporter(config config.Config, params component.ExporterCreateParams, marshallers map[string]trace.Marshaller) (*kafkaProducer, error) {
 	marshaller := marshallers[config.Encoding]
 	if marshaller == nil {
 		return nil, errUnrecognizedEncoding
 	}
 
-	c := sarama.NewConfig()
-	// These setting are required by the sarama.SyncProducer implementation.
-	c.Producer.Return.Successes = true
-	c.Producer.Return.Errors = true
-	// Wait only the local commit to succeed before responding.
-	c.Producer.RequiredAcks = sarama.WaitForLocal
-	// Because sarama does not accept a Context for every message, set the Timeout here.
-	c.Producer.Timeout = config.Timeout
-	c.Metadata.Full = config.Metadata.Full
-	c.Metadata.Retry.Max = config.Metadata.Retry.Max
-	c.Metadata.Retry.Backoff = config.Metadata.Retry.Backoff
-	if config.ProtocolVersion != "" {
-		version, err := sarama.ParseKafkaVersion(config.ProtocolVersion)
-		if err != nil {
-			return nil, err
-		}
-		c.Version = version
-	}
-	if err := ConfigureAuthentication(config.Authentication, c); err != nil {
+	c, err := saramaConfig(config)
+	if err != nil {
 		return nil, err
 	}
+
 	producer, err := sarama.NewSyncProducer(config.Brokers, c)
 	if err != nil {
 		return nil, err
@@ -105,4 +90,29 @@ func producerMessages(messages []wire.Message, topic string) []*sarama.ProducerM
 		}
 	}
 	return producerMessages
+}
+
+func saramaConfig(c config.Config) (*sarama.Config, error) {
+	sc := sarama.NewConfig()
+	// These setting are required by the sarama.SyncProducer implementation.
+	sc.Producer.Return.Successes = true
+	sc.Producer.Return.Errors = true
+	// Wait only the local commit to succeed before responding.
+	sc.Producer.RequiredAcks = sarama.WaitForLocal
+	// Because sarama does not accept a Context for every message, set the Timeout here.
+	sc.Producer.Timeout = c.Timeout
+	sc.Metadata.Full = c.Metadata.Full
+	sc.Metadata.Retry.Max = c.Metadata.Retry.Max
+	sc.Metadata.Retry.Backoff = c.Metadata.Retry.Backoff
+	if c.ProtocolVersion != "" {
+		version, err := sarama.ParseKafkaVersion(c.ProtocolVersion)
+		if err != nil {
+			return nil, err
+		}
+		sc.Version = version
+	}
+	if err := config.ConfigureAuthentication(c.Authentication, sc); err != nil {
+		return nil, err
+	}
+	return sc, nil
 }

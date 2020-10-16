@@ -22,22 +22,14 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config/configcheck"
 	"go.opentelemetry.io/collector/consumer/pdata"
+	"go.opentelemetry.io/collector/exporter/kafkaexporter/config"
 	"go.opentelemetry.io/collector/exporter/kafkaexporter/trace"
 	"go.opentelemetry.io/collector/exporter/kafkaexporter/wire"
 )
 
-func TestCreateDefaultConfig(t *testing.T) {
-	cfg := createDefaultConfig().(*Config)
-	assert.NotNil(t, cfg, "failed to create default config")
-	assert.NoError(t, configcheck.ValidateConfig(cfg))
-	assert.Equal(t, []string{defaultBroker}, cfg.Brokers)
-	assert.Equal(t, defaultTopic, cfg.Topic)
-}
-
 func TestCreateTracesExporter(t *testing.T) {
-	cfg := createDefaultConfig().(*Config)
+	cfg := config.Default().(*config.Config)
 	cfg.Brokers = []string{"invalid:9092"}
 	cfg.ProtocolVersion = "2.0.0"
 	// this disables contacting the broker so we can successfully create the exporter
@@ -49,7 +41,7 @@ func TestCreateTracesExporter(t *testing.T) {
 }
 
 func TestCreateTracesExporter_err(t *testing.T) {
-	cfg := createDefaultConfig().(*Config)
+	cfg := config.Default().(*config.Config)
 	cfg.Brokers = []string{"invalid:9092"}
 	cfg.ProtocolVersion = "2.0.0"
 	f := kafkaExporterFactory{traceMarshallers: trace.DefaultMarshallers()}
@@ -61,8 +53,8 @@ func TestCreateTracesExporter_err(t *testing.T) {
 
 func TestWithMarshallers(t *testing.T) {
 	cm := &customMarshaller{}
-	f := NewFactory(WithAddMarshallers(map[string]trace.Marshaller{cm.Encoding(): cm}))
-	cfg := createDefaultConfig().(*Config)
+	f := NewFactory(WithTraceMarshaller(map[string]trace.Marshaller{cm.Encoding(): cm}))
+	cfg := config.Default().(*config.Config)
 	// disable contacting broker
 	cfg.Metadata.Full = false
 
@@ -73,7 +65,7 @@ func TestWithMarshallers(t *testing.T) {
 		require.NotNil(t, exporter)
 	})
 	t.Run("default_encoding", func(t *testing.T) {
-		cfg.Encoding = defaultEncoding
+		cfg.Encoding = config.DefaultEncoding
 		exporter, err := f.CreateTraceExporter(context.Background(), component.ExporterCreateParams{}, cfg)
 		require.NoError(t, err)
 		assert.NotNil(t, exporter)
