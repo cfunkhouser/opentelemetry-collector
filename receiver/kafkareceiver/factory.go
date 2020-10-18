@@ -21,7 +21,7 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/configmodels"
 	"go.opentelemetry.io/collector/consumer"
-	"go.opentelemetry.io/collector/exporter/kafkaexporter"
+	"go.opentelemetry.io/collector/exporter/kafkaexporter/config"
 	"go.opentelemetry.io/collector/receiver/receiverhelper"
 )
 
@@ -78,9 +78,9 @@ func createDefaultConfig() configmodels.Receiver {
 		Brokers:  []string{defaultBroker},
 		ClientID: defaultClientID,
 		GroupID:  defaultGroupID,
-		Metadata: kafkaexporter.Metadata{
+		Metadata: config.Metadata{
 			Full: defaultMetadataFull,
-			Retry: kafkaexporter.MetadataRetry{
+			Retry: config.MetadataRetry{
 				Max:     defaultMetadataRetryMax,
 				Backoff: defaultMetadataRetryBackoff,
 			},

@@ -33,7 +33,7 @@ import (
 	"go.opentelemetry.io/collector/config/configtls"
 	"go.opentelemetry.io/collector/consumer/pdata"
 	"go.opentelemetry.io/collector/exporter/exportertest"
-	"go.opentelemetry.io/collector/exporter/kafkaexporter"
+	"go.opentelemetry.io/collector/exporter/kafkaexporter/config"
 	otlptrace "go.opentelemetry.io/collector/internal/data/opentelemetry-proto-gen/collector/trace/v1"
 )
 
@@ -60,7 +60,7 @@ func TestNewReceiver_encoding_err(t *testing.T) {
 func TestNewExporter_err_auth_type(t *testing.T) {
 	c := Config{
 		ProtocolVersion: "2.0.0",
-		Authentication: kafkaexporter.Authentication{
+		Authentication: config.Authentication{
 			TLS: &configtls.TLSClientSetting{
 				TLSSetting: configtls.TLSSetting{
 					CAFile: "/doesnotexist",
@@ -68,7 +68,7 @@ func TestNewExporter_err_auth_type(t *testing.T) {
 			},
 		},
 		Encoding: defaultEncoding,
-		Metadata: kafkaexporter.Metadata{
+		Metadata: config.Metadata{
 			Full: false,
 		},
 	}

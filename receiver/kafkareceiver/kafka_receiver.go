@@ -26,7 +26,7 @@ import (
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
-	"go.opentelemetry.io/collector/exporter/kafkaexporter"
+	"go.opentelemetry.io/collector/exporter/kafkaexporter/config"
 	"go.opentelemetry.io/collector/obsreport"
 )
 
@@ -50,35 +50,35 @@ type kafkaConsumer struct {
 
 var _ component.Receiver = (*kafkaConsumer)(nil)
 
-func newReceiver(config Config, params component.ReceiverCreateParams, unmarshalers map[string]Unmarshaller, nextConsumer consumer.TraceConsumer) (*kafkaConsumer, error) {
-	unmarshaller := unmarshalers[config.Encoding]
+func newReceiver(cfg Config, params component.ReceiverCreateParams, unmarshalers map[string]Unmarshaller, nextConsumer consumer.TraceConsumer) (*kafkaConsumer, error) {
+	unmarshaller := unmarshalers[cfg.Encoding]
 	if unmarshaller == nil {
 		return nil, errUnrecognizedEncoding
 	}
 
 	c := sarama.NewConfig()
-	c.ClientID = config.ClientID
-	c.Metadata.Full = config.Metadata.Full
-	c.Metadata.Retry.Max = config.Metadata.Retry.Max
-	c.Metadata.Retry.Backoff = config.Metadata.Retry.Backoff
-	if config.ProtocolVersion != "" {
-		version, err := sarama.ParseKafkaVersion(config.ProtocolVersion)
+	c.ClientID = cfg.ClientID
+	c.Metadata.Full = cfg.Metadata.Full
+	c.Metadata.Retry.Max = cfg.Metadata.Retry.Max
+	c.Metadata.Retry.Backoff = cfg.Metadata.Retry.Backoff
+	if cfg.ProtocolVersion != "" {
+		version, err := sarama.ParseKafkaVersion(cfg.ProtocolVersion)
 		if err != nil {
 			return nil, err
 		}
 		c.Version = version
 	}
-	if err := kafkaexporter.ConfigureAuthentication(config.Authentication, c); err != nil {
+	if err := config.ConfigureAuthentication(cfg.Authentication, c); err != nil {
 		return nil, err
 	}
-	client, err := sarama.NewConsumerGroup(config.Brokers, config.GroupID, c)
+	client, err := sarama.NewConsumerGroup(cfg.Brokers, cfg.GroupID, c)
 	if err != nil {
 		return nil, err
 	}
 	return &kafkaConsumer{
-		name:          config.Name(),
+		name:          cfg.Name(),
 		consumerGroup: client,
-		topics:        []string{config.Topic},
+		topics:        []string{cfg.Topic},
 		nextConsumer:  nextConsumer,
 		unmarshaller:  unmarshaller,
 		logger:        params.Logger,

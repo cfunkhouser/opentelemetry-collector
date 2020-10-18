@@ -16,7 +16,7 @@ package kafkareceiver
 
 import (
 	"go.opentelemetry.io/collector/config/configmodels"
-	"go.opentelemetry.io/collector/exporter/kafkaexporter"
+	"go.opentelemetry.io/collector/exporter/kafkaexporter/config"
 )
 
 // Config defines configuration for Kafka receiver.
@@ -37,7 +37,7 @@ type Config struct {
 
 	// Metadata is the namespace for metadata management properties used by the
 	// Client, and shared by the Producer/Consumer.
-	Metadata kafkaexporter.Metadata `mapstructure:"metadata"`
+	Metadata config.Metadata `mapstructure:"metadata"`
 
-	Authentication kafkaexporter.Authentication `mapstructure:"auth"`
+	Authentication config.Authentication `mapstructure:"auth"`
 }
